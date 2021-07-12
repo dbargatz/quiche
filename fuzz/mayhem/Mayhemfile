@@ -1,0 +1,62 @@
+project: protocols/quiche
+
+# MAYHEM_URL, MAYHEM_TOKEN, and MAYHEM_INSECURE environment variables provided via
+# GitHub env vars provide the remainder of the Mayhem API server configuration.
+api:
+  auto_cacert: true
+  insecure: false
+
+# All of the CI information (build_id, branch, revision, etc) provided via the Git
+# and/or GitHub integration.
+
+targets:
+  # Template target with default values that other targets can extend/override, so they
+  # don't have to be specified more than once. This is similar to how GitLab CI and
+  # GitHub Actions specify templates in their YAML - the period prefix for the template
+  # name comes from .gitlab-ci.yml and is just a convention to separate template targets
+  # from real targets.
+  - name: .quiche_template:
+    advanced_triage: false
+    # Automatically tag and push a commit-specific quiche-libfuzzer:<build_id> image to
+    # the Mayhem Docker registry.
+    auto_push: true
+    baseimage: $MAYHEM_DOCKER_REGISTRY/protocols/quiche-libfuzzer:latest
+    # This may not be the correct syntax, but the idea is to specify the corpus dir
+    # already present at fuzz/corpus, since the target-specific directories just symlink
+    # their corpus dirs to that directory. This gets rid of target-specific directories
+    # altogether.
+    corpus:
+    - dir://../corpus
+    # For this, assuming the config would be infinite continuous fuzzing on primary
+    # branch and running regression tests to completion on feature branches, so set
+    # both fuzzing and regression durations to null.
+    tasks:
+    - name: behavior_testing
+      duration_secs: null  # Run until another continuous fuzzing run stops this one
+    - name: regression_testing
+      duration_secs: null  # Run all testcases until complete
+    cmds:
+      # We don't care what the value is for the template cmd, since it'll be overridden
+      # by each target below, so use null.
+    - cmd: null
+      libfuzzer: true
+      sanitizer: true
+      timeout: 5
+  # This target only extends the template and specifies a concrete first command.
+  - name: packet-recv-client-libfuzzer
+    extends: .quiche_template
+    cmds:
+    - cmd: /home/mayhem/packet_recv_client
+  # This target also extends the template and specifies a concrete first command, but
+  # also specifies some environment variables to fuzz the target with.
+  - name: packet-recv-server-libfuzzer
+    extends: .quiche_template
+    cmds:
+    - cmd: /home/mayhem/packet_recv_server
+      env: { "QUICHE_FUZZ_CRT": "/home/mayhem/cert.crt", "QUICHE_FUZZ_KEY": "/home/mayhem/cert.key" }
+  # Just like the first target, this target only extends the template and specifies a
+  # concrete first command.
+  - name: qpack-decode-libfuzzer
+    extends: .quiche_template
+    cmds:
+    - cmd: /home/mayhem/qpack_decode
