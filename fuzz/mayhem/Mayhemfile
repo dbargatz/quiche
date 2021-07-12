@@ -21,12 +21,6 @@ targets:
     # the Mayhem Docker registry.
     auto_push: true
     baseimage: $MAYHEM_DOCKER_REGISTRY/protocols/quiche-libfuzzer:latest
-    # This may not be the correct syntax, but the idea is to specify the corpus dir
-    # already present at fuzz/corpus, since the target-specific directories just symlink
-    # their corpus dirs to that directory. This gets rid of target-specific directories
-    # altogether.
-    corpus:
-    - dir://../corpus
     # For this, assuming the config would be infinite continuous fuzzing on primary
     # branch and running regression tests to completion on feature branches, so set
     # both fuzzing and regression durations to null.
