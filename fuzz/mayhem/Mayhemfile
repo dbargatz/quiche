@@ -36,21 +36,29 @@ targets:
       libfuzzer: true
       sanitizer: true
       timeout: 5
-  # This target only extends the template and specifies a concrete first command.
+  # This target extends the template by specifying a concrete first command and corpus
+  # directory.
   - name: packet-recv-client-libfuzzer
     extends: .quiche_template
+    corpus:
+      - dir://corpus/packet_recv_client
     cmds:
     - cmd: /home/mayhem/packet_recv_client
-  # This target also extends the template and specifies a concrete first command, but
-  # also specifies some environment variables to fuzz the target with.
+  # This target also extends the template by specifying a concrete first command and
+  # corpus directory, but also specifies some environment variables to fuzz the target
+  # with.
   - name: packet-recv-server-libfuzzer
     extends: .quiche_template
+    corpus:
+      - dir://corpus/packet_recv_server
     cmds:
     - cmd: /home/mayhem/packet_recv_server
       env: { "QUICHE_FUZZ_CRT": "/home/mayhem/cert.crt", "QUICHE_FUZZ_KEY": "/home/mayhem/cert.key" }
-  # Just like the first target, this target only extends the template and specifies a
-  # concrete first command.
+  # Just like the first target, this target only extends the template by specifying a
+  # concrete first command and corpus directory.
   - name: qpack-decode-libfuzzer
     extends: .quiche_template
+    corpus:
+      - dir://corpus/qpack_decode
     cmds:
     - cmd: /home/mayhem/qpack_decode
